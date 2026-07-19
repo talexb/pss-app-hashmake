@@ -1,0 +1,37 @@
+2026-0708 / Make tool based on the MD5 history of a file, and not the
+comparative ages of various files.
+
+
+Like make, this tool will have a Makefile-like control file to list files to be
+checked, and the action if the test passes. Unlike make, there won't be a
+target with a series of filess, but rather a single target.
+
+If the target doesn't exist, no action is taken.
+
+If the index file doesn't exist, we note that and may create one later if
+necessary. Or perhaps we attempt to read the index file into a data structure,
+but if the index file isn't there, the data structure is left as undef.
+
+If the target exists, but hasn't been seen before, a) we add the hash for the
+file to the index, and b) we perform the action.
+
+If the target exists, but the hash value matches the value on file, no action
+is taken.
+
+If the target exists, but the hash value is different than the one on file,
+then the two steps a and b (above) are taken.
+
+
+Arguments from the command line -- should follow the ones that make uses already.
+
+-f Makefile
+
+We'll also need to specify the location of the index file. I assume this file
+would be in the same directory that the target file is in, but that may not
+necessarily be the case, so we'll need a fallback, perhaps the home directory
+for the current user.  For the first case, we can get away with just the
+filename; in the second case, we'd need the full path name. The CWD may or may
+not be a suitable location.
+
+There may be issues when the permissions on the index file's directory changes,
+so we might re-do some work. I'm going to assume that will be a rare edge case.
