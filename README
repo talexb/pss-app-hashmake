@@ -1,16 +1,20 @@
 App-HashMake
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
+HashMake is a make-like tool that uses the hash value of a target file rather
+than comparing the timestamps of a target with the dependent files. The hash
+values of targets are stored in a hidden file. if a file's hash value has
+changed, then the actions associated with that target are run.
 
-A README file is required for CPAN modules since CPAN extracts the README
-file from a module distribution so that people browsing the archive
-can use it to get an idea of the module's uses. It is usually a good idea
-to provide version information here so that people can decide whether
-fixes for the module are worth downloading.
+If the target doesn't exist, no action is taken.  Otherwise, we load the index
+file if it exists.  If the target's hash value matches what we have in the
+index, no action is taken; otherwise, if the value is different, or if it's
+missing, we perform the action. That new hash value will cause a new index file
+to be outpout after all targets have been evaluated.
 
+The hashmake command line arguments should match the ones from make.
+
+by default, it will look for a file called Hash-MakeFile, but that name can be
+overrideen with the -f command line argument.
 
 INSTALLATION
 
