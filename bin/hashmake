@@ -20,7 +20,7 @@ use App::HashMake;
 
     getopts ( 'dnf:', \my %opts );
 
-    print "Dumping out the opts hash:\n" . Dumper ( \%opts );
+    # print "Dumping out the opts hash:\n" . Dumper ( \%opts );
 
     my $result = App::HashMake::run ( \%opts );
     exit ( $result );
