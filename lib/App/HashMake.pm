@@ -57,6 +57,8 @@ sub run
       print "--> print_only: $print_only\n";
       print "--> makefile: $makefile\n";
     }
+
+    return ( 0 );
 }
 
 =head1 AUTHOR
