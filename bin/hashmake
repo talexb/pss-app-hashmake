@@ -1,0 +1,27 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+#  2026-0721: Main script for HashMake. Collect command line arguments, set up
+#  the operating environment.
+
+use Getopt::Std;
+use Data::Dumper;
+
+use lib 'lib';
+
+use App::HashMake;
+
+{
+    #  d - Turn on debug info.
+    #  n - Print the commands that would be executed.
+    #  f - Specify a non-standard hash.makefile
+
+    getopts ( 'dnf:', \my %opts );
+
+    print "Dumping out the opts hash:\n" . Dumper ( \%opts );
+
+    my $result = App::HashMake::run ( \%opts );
+    exit ( $result );
+}

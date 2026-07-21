@@ -4,6 +4,8 @@ use 5.008003;
 use strict;
 use warnings;
 
+use Env qw(HASH_MAKEFILE);
+
 =head1 NAME
 
 App::HashMake - The great new App::HashMake!
@@ -16,6 +18,7 @@ Version 0.01
 
 our $VERSION = '0.01';
 
+our $default_hash_makefile = 'Hash.Makefile';
 
 =head1 SYNOPSIS
 
@@ -25,7 +28,7 @@ Perhaps a little code snippet.
 
     use App::HashMake;
 
-    my $foo = App::HashMake->new();
+    my $result = App::HashMake->run();
     ...
 
 =head1 EXPORT
@@ -35,18 +38,25 @@ if you don't export anything, such as for a purely object-oriented module.
 
 =head1 SUBROUTINES/METHODS
 
-=head2 function1
+=head2 run
 
 =cut
 
-sub function1 {
-}
+sub run
+{
+    my ( $args ) = @_;
 
-=head2 function2
+    my $debug      = exists $args->{d} ? 1 : 0;
+    my $print_only = exists $args->{n} ? 1 : 0;
+    my $makefile =   exists $args->{f} ?
+      $args->{f} : ( $HASH_MAKEFILE // $default_hash_makefile );
 
-=cut
+    if ( $debug ) {
 
-sub function2 {
+      print "Settings:\n";
+      print "--> print_only: $print_only\n";
+      print "--> makefile: $makefile\n";
+    }
 }
 
 =head1 AUTHOR
