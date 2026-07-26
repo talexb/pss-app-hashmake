@@ -8,70 +8,79 @@ use Test::More;
 my $cmd = 'bin/hashmake';
 
 my $default_makefile = 'Hash.Makefile';     #  Duplicated from module :/
-my $other_makefile   = 'other_makefile';
-my $env_makefile     = 'env_makefile';
+my $other_makefile   = 'other.makefile';
+my $env_makefile     = 'env.makefile';
 
 {
     ok ( -e $cmd, "Script found" );
     ok ( -x $cmd, "Script is executable" );
 
-    foreach my $d ( 0..1 ) {            #  Debug
+    #  I want to just test that argument parsing is working, so that means
+    #  debug is always set.
 
-      foreach my $n ( 0..1 ) {          #  Print Only
+    my $d = 1;
 
-        foreach my $f ( 0..1 ) {        #  Specify makefile
+    foreach my $n ( 0..1 ) {          #  Print Only
 
-          foreach my $e ( 0..1 ) {      #  Environment has makefile
+      foreach my $f ( 0..1 ) {        #  Specify makefile
 
-            my ( @args, @env );
+        foreach my $e ( 0..1 ) {      #  Environment has makefile
 
-            if ( $d ) { push ( @args, '-d' ); }
-            if ( $n ) { push ( @args, '-n' ); }
-            if ( $f ) { push ( @args, "-f $other_makefile" ); }
-            if ( $e ) { push ( @env,  "HASH_MAKEFILE=$env_makefile" ); }
+          my ( @args, @env );
 
-            my $line = join ( ' ', @env, $cmd, @args );
-            my @result = qx/$line/;
+          if ( $d ) { push ( @args, '-d' ); }
+          if ( $n ) { push ( @args, '-n' ); }
+          if ( $f ) { push ( @args, "-f $other_makefile" ); }
+          if ( $e ) { push ( @env,  "HASH_MAKEFILE=$env_makefile" ); }
 
-            if ( $d ) {
+          my $line = join ( ' ', @env, $cmd, @args );
+          my @result = qx/$line/;
 
-              foreach my $l ( @result ) {
+          if ( $d ) {
 
-                unlike ( $l, qr/Unknown option:/, "Did not see 'unknown option'" ); 
-                if ( $l =~ /print_only: (\d)/ ) {
+	    my $last_make_file;
+            foreach my $l ( @result ) {
 
-                  my $value = $1;
-                  is ( $value, $n, "Pring value matches" );
+              unlike ( $l, qr/Unknown option:/, "Did not see 'unknown option'" ); 
+
+              if ( $l =~ /print_only: (\d)/ ) {
+
+                my $value = $1;
+                is ( $value, $n, "Pring value matches" );
+              }
+
+              if ( $l =~ /makefile: (\S+)/ ) {
+
+                #  The order of precedence is 1) command line, 2)
+                #  environment, and 3) default.
+
+                $last_make_file = $1;
+                if ( $f ) {
+
+                  is ( $last_make_file, $other_makefile, "Other makefile" );
+
                 }
+                elsif ( $e ) {
 
-                if ( $l =~ /makefile: (\S+)/ ) {
+                  is ( $last_make_file, $env_makefile, "Env makefile" );
 
-                  #  The order of precedence is 1) command line, 2)
-                  #  environment, and 3) default.
+                } else
+                {
 
-                  my $value = $1;
-                  if ( $f ) {
-
-                    is ( $value, $other_makefile, "Other makefile" );
-
-                  }
-                  elsif ( $e ) {
-
-                    is ( $value, $env_makefile, "Env makefile" );
-
-                  } else
-                  {
-
-                    is ( $value, $default_makefile, "Default makefile" );
-                  }
+                  is ( $last_make_file, $default_makefile, "Default makefile" );
                 }
               }
-            } else {
 
-              is ( @result, 0, "No results because not debug" );
+	      if ( $l =~ /No targets specified and no makefile found/ ) {
+
+	        ok ( ! -e $last_make_file, "Makefile $last_make_file not found" );
+	      }
             }
+          } else {
 
+            is ( @result, 0, "No results because not debug" );
           }
+
         }
       }
     }
