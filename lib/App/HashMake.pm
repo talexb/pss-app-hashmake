@@ -58,7 +58,21 @@ sub run
       print "--> makefile: $makefile\n";
     }
 
+    if ( ! -e $makefile ) {
+
+      msg ( "$0: *** No targets specified and no makefile found.  Stop." );
+
+      return ( 0 );
+    }
+
     return ( 0 );
+}
+
+sub msg
+{
+    my ( $msg ) = @_;
+
+    print "$msg\n";	#  Will need to be gated on debug, verbosity and quiet flags.
 }
 
 =head1 AUTHOR
