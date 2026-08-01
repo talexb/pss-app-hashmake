@@ -6,6 +6,9 @@ use warnings;
 
 use Env qw(HASH_MAKEFILE);
 
+use File::Spec;
+use Digest::MD5;
+
 =head1 NAME
 
 App::HashMake - The great new App::HashMake!
@@ -19,6 +22,7 @@ Version 0.01
 our $VERSION = '0.01';
 
 our $default_hash_makefile = 'Hash.Makefile';
+our $index_file = '.hash_index';
 
 =head1 SYNOPSIS
 
@@ -65,6 +69,144 @@ sub run
       return ( 0 );
     }
 
+    #  OK, at this point we do have a makefile, so we need to locate the index
+    #  file, which should be in the same directory. If it's there, we'll load
+    #  up the hash values.
+
+    my ( $vol, $dir, $file ) = File::Spec->splitpath ( $makefile );
+    my $full_index_file = File::Spec->catfile ( $dir, $index_file );
+
+    my %hash_values = ();
+
+    if ( -e $full_index_file ) {
+
+      open ( my $fh, '<', $full_index_file );
+      while ( <$fh> ) {
+
+        #  Ths file format is going to be filename, followed by at least one
+        #  space, followed by the hash value (shown as an MD5 here). This will
+        #  allow us to handle files with embedded spaces. I hope. This file is
+        #  going to be a data file only, and will not have comments.
+
+        my ( $target, $md5 ) = /^(.+)\s+(.+)$/;
+	    $hash_values{ $target } = $md5;
+      }
+      close ( $fh );
+    }
+
+    #  Read the makefile, so that we can undeerstand the targets.
+
+    open ( my $fh, '<', $makefile );
+    my ( %config, $target );
+
+    undef $target;
+
+    while ( <$fh> ) {
+
+      next if ( /^#/ );		#  Skip comments
+
+      my $line = $_;
+      if ( $line =~ /^\s+$/ ) {
+
+        #  Blank line means we're doing with this target's commands if we had a
+        #  target to begin with.
+
+        undef $target;
+        next;
+      }
+      
+      #  Strip leading spaces and trailing new lines.
+
+      $line =~ s/^\s+x$//;
+      $line =~ s/\s+$//;
+
+      if ( defined $target ) {
+
+        #  We have a target, so this is a command line for it.
+
+        push ( @{ $config{ $target } }, $line );
+
+      } else {
+
+        #  Unlike a makefile, which has a target and then a list of dependents,
+        #  we just have a target.
+
+        ( $target ) = $line;
+        $config{ $target } = ();	#  No commands for this target so far.
+      }
+    }
+    close ( $fh );
+
+    #  Nothing actionable in the makefile? Get out.
+
+    if ( !keys %config ) {
+
+      msg ( "No targets found, done." );
+      return ( 0 );
+    }
+
+    # Now it's time to check out each target. At this point, we're going to be
+    # checking them in heap order (so, random). I assume that's going to be
+    # fine.
+
+    my $action_count = 0;
+    foreach my $target ( keys %config ) {
+
+      #  Find the MD5 of the target, and see if our value matches the one from
+      #  the index file.
+
+      if ( !-e $target ) {
+
+        msg ( "WARN: Target $target does not exist." );
+        next;
+      }
+
+      open ( my $fh, '<', $target );
+      my $md5 = Digest::MD5->new;
+      $md5->addfile ( $fh );
+      close ( $fh );
+
+      my $digest = $md5->hexdigest;
+      my $action = 0;	#  No action yet;
+
+      #  If there are keys, a key exists for this target, and the MD5 value is
+      #  different, OR if there are no keys at all, then do the thing.
+
+      if ( ( keys %hash_values && exists $hash_values{ $target } &&
+             $hash_values{ $target } ne $digest ) ||
+	   !keys %hash_values ) {
+
+        $action = 1;
+        $hash_values{ $target } = $digest;
+      }
+
+      #  If we're going to do the actions, this is where it happens. Later,
+      #  we update the index file before we exit.
+
+      if ( $action ) {
+
+        print "INFO: Perform some actions for the target $target.\n";
+        print join ( "\n", map { "--> $_" } @{ $config{ $target } } ) . "\n";
+        $action_count++;
+
+      } else {
+
+        print "DEBUG: Nothing to do for the target $target.\n";
+      }
+
+    }
+
+    if ( $action_count ) {
+
+      #  We did some actions, time to update the index.
+
+      open ( my $fh, '>', $full_index_file );
+      print $fh join ( "\n",
+        map { "$_ $hash_values{ $_ }" } keys %hash_values ) . "\n";
+      close ( $fh );
+
+      print "DEBUG: Updated full_index file $full_index_file.\n";
+    }
     return ( 0 );
 }
 
