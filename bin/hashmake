@@ -22,6 +22,19 @@ use App::HashMake;
 
     # print "Dumping out the opts hash:\n" . Dumper ( \%opts );
 
-    my $result = App::HashMake::run ( \%opts );
+    my ( $result, $output ) = App::HashMake::run ( \%opts );
+
+    #  The module just collects the errors and the output but doesn't actually
+    #  send anything. This allows us to do testing without having to capture
+    #  the output.  This may or may not be a smart approach.
+
+    if ( $output->{ err } ) {
+
+      print STDERR join ( "\n", @{ $output->{ err } } ) . "\n";
+    }
+    if ( $output->{ out } ) {
+
+      print join ( "\n", @{ $output->{ out } } ) . "\n";
+    }
     exit ( $result );
 }

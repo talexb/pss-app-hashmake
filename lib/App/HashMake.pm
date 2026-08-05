@@ -46,6 +46,9 @@ if you don't export anything, such as for a purely object-oriented module.
 
 =cut
 
+our $verb = 1;      #  Verbosity. 0 - quiet, 1 - normal, 2 - debug.
+our ( @out, @err ); #  Output and Error lists to be returned to caller.
+
 sub run
 {
     my ( $args ) = @_;
@@ -57,16 +60,17 @@ sub run
 
     if ( $debug ) {
 
-      print "Settings:\n";
-      print "--> print_only: $print_only\n";
-      print "--> makefile: $makefile\n";
+      $verb++;
+
+      msg ( "Settings:", "--> print_only: $print_only",
+                         "--> makefile: $makefile" );
     }
 
     if ( ! -e $makefile ) {
 
-      msg ( "$0: *** No targets specified and no makefile found.  Stop." );
+      err ( "$0: *** No targets specified and no makefile found.  Stop." );
 
-      return ( 0 );
+      return ( 0, { out => \@out, err => \@err } );
     }
 
     #  OK, at this point we do have a makefile, so we need to locate the index
@@ -142,7 +146,7 @@ sub run
     if ( !keys %config ) {
 
       msg ( "No targets found, done." );
-      return ( 0 );
+      return ( 0, { out => \@out, err => \@err } );
     }
 
     # Now it's time to check out each target. At this point, we're going to be
@@ -185,13 +189,13 @@ sub run
 
       if ( $action ) {
 
-        print "INFO: Perform some actions for the target $target.\n";
-        print join ( "\n", map { "--> $_" } @{ $config{ $target } } ) . "\n";
+        msg ( "INFO: Perform some actions for the target $target." );
+        msg ( map { "--> $_" } @{ $config{ $target } } );
         $action_count++;
 
       } else {
 
-        print "DEBUG: Nothing to do for the target $target.\n";
+        dbg ( "DEBUG: Nothing to do for the target $target." );
       }
 
     }
@@ -205,16 +209,30 @@ sub run
         map { "$_ $hash_values{ $_ }" } keys %hash_values ) . "\n";
       close ( $fh );
 
-      print "DEBUG: Updated full_index file $full_index_file.\n";
+      dbg ( "DEBUG: Updated full_index file $full_index_file." );
     }
-    return ( 0 );
+    return ( 0, { out => \@out, err => \@err } );
+}
+
+sub dbg
+{
+    my ( @msg ) = @_;
+
+   if ( $verb > 1 ) { push ( @out, @msg ); }
 }
 
 sub msg
 {
-    my ( $msg ) = @_;
+    my ( @msg ) = @_;
 
-    print "$msg\n";	#  Will need to be gated on debug, verbosity and quiet flags.
+   push ( @out, @msg );
+}
+
+sub err
+{
+    my ( @msg ) = @_;
+
+   push ( @err, @msg );
 }
 
 =head1 AUTHOR
