@@ -46,7 +46,7 @@ my $env_makefile     = 'env.makefile';
               if ( $l =~ /print_only: (\d)/ ) {
 
                 my $value = $1;
-                is ( $value, $n, "Pring value matches" );
+                is ( $value, $n, "Printing value matches" );
               }
 
               if ( $l =~ /makefile: (\S+)/ ) {

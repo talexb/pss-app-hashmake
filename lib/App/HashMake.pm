@@ -189,9 +189,19 @@ sub run
 
       if ( $action ) {
 
-        msg ( "INFO: Perform some actions for the target $target." );
-        msg ( map { "--> $_" } @{ $config{ $target } } );
-        $action_count++;
+        dbg ( "INFO: Perform some actions for the target $target." );
+        if ( $print_only ) {
+
+          msg ( map { "--> $_" } @{ $config{ $target } } );
+
+        } else {
+
+          foreach my $cmd ( @{ $config{ $target } } ) {
+
+            system ( $cmd );        #  Run the command. Yikes.
+          }
+          $action_count++;
+        }
 
       } else {
 

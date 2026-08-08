@@ -28,11 +28,11 @@ use App::HashMake;
     #  send anything. This allows us to do testing without having to capture
     #  the output.  This may or may not be a smart approach.
 
-    if ( $output->{ err } ) {
+    if ( @{ $output->{ err } } ) {
 
       print STDERR join ( "\n", @{ $output->{ err } } ) . "\n";
     }
-    if ( $output->{ out } ) {
+    if ( @{ $output->{ out } } ) {
 
       print join ( "\n", @{ $output->{ out } } ) . "\n";
     }
