@@ -38,7 +38,7 @@ my $env_makefile     = 'env.makefile';
 
           if ( $d ) {
 
-	    my $last_make_file;
+            my $last_make_file;
             foreach my $l ( @result ) {
 
               unlike ( $l, qr/Unknown option:/, "Did not see 'unknown option'" ); 
@@ -71,16 +71,15 @@ my $env_makefile     = 'env.makefile';
                 }
               }
 
-	      if ( $l =~ /No targets specified and no makefile found/ ) {
+              if ( $l =~ /No targets specified and no makefile found/ ) {
 
-	        ok ( ! -e $last_make_file, "Makefile $last_make_file not found" );
-	      }
+                ok ( ! -e $last_make_file, "Makefile $last_make_file not found" );
+              }
             }
           } else {
 
             is ( @result, 0, "No results because not debug" );
           }
-
         }
       }
     }
