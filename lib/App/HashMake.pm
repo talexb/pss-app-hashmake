@@ -77,7 +77,7 @@ sub run
 
     if ( ! -e $makefile ) {
 
-      err ( "$0: *** No targets specified and no makefile found.  Stop." );
+      err ( "$0: ERROR: No makefile found, done." );
 
       return ( 0, { out => \@out, err => \@err } );
     }
@@ -188,7 +188,7 @@ sub run
 
     if ( !keys %config ) {
 
-      msg ( "No targets found, done." );
+      msg ( "$0: WARN: No targets found, done." );
       return ( 0, { out => \@out, err => \@err } );
     }
 
@@ -204,7 +204,7 @@ sub run
 
       if ( !-e $target ) {
 
-        msg ( "WARN: Target $target does not exist." );
+        msg ( "$0: WARN: Target $target does not exist." );
         next;
       }
 
@@ -232,10 +232,9 @@ sub run
 
       if ( $action ) {
 
-        dbg ( "INFO: Perform some actions for the target $target." );
         if ( $print_only ) {
 
-          msg ( map { "--> $_" } @{ $config{ $target } } );
+          msg ( map { "Would run this --> $_" } @{ $config{ $target } } );
 
         } else {
 
