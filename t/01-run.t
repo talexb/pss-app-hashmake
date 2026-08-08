@@ -50,6 +50,8 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
 
                 my $value = $1;
                 is ( $value, $n, "Printing value matches" );
+
+                next;
               }
 
               if ( $l =~ /makefile: (\S+)/ ) {
@@ -72,18 +74,33 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
 
                   is ( $last_make_file, $default_makefile, "Default makefile" );
                 }
+
+                next;
               }
 
-              if ( $l =~ /No targets specified and no makefile found/ ) {
+              if ( $l =~ /No makefile found/ ) {
 
                 ok ( ! -e $last_make_file, "Makefile $last_make_file not found" );
+
+                next;
               }
 
               if ( $w && $l =~ /working_dir: (\S+)/ ) {
 
                 my $value = $1;
                 is ( $value, $work_dir, "Working directory requested" );
+
+                next;
               }
+
+              if ( $l =~ /Settings:/ ) {
+
+                next;
+              }
+
+              #  If there was something that I wasn't expecting, complain.
+
+              fail ( "Unexpected output: $l" );
             }
           }
         }
