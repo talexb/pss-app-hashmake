@@ -17,8 +17,9 @@ use App::HashMake;
     #  d - Turn on debug info.
     #  n - Print the commands that would be executed.
     #  f - Specify a non-standard hash.makefile
+    #  w - Working directory (because we can't write to target directory)
 
-    getopts ( 'dnf:', \my %opts );
+    getopts ( 'dnf:w', \my %opts );
 
     # print "Dumping out the opts hash:\n" . Dumper ( \%opts );
 

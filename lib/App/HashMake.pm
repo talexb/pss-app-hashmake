@@ -55,15 +55,24 @@ sub run
 
     my $debug      = exists $args->{d} ? 1 : 0;
     my $print_only = exists $args->{n} ? 1 : 0;
-    my $makefile =   exists $args->{f} ?
+    my $makefile   = exists $args->{f} ?
       $args->{f} : ( $HASH_MAKEFILE // $default_hash_makefile );
+    my $work_dir   = $args->{w};
 
-    if ( $debug ) {
+    if ($debug) {
 
       $verb++;
 
-      msg ( "Settings:", "--> print_only: $print_only",
-                         "--> makefile: $makefile" );
+      my @out = (
+        "Settings:",
+        "--> print_only: $print_only",
+        "--> makefile: $makefile"
+      );
+      if ( defined $work_dir ) {
+
+        push( @out, "--> working_dir: $work_dir" );
+      }
+      msg ( @out );
     }
 
     if ( ! -e $makefile ) {
@@ -73,12 +82,46 @@ sub run
       return ( 0, { out => \@out, err => \@err } );
     }
 
-    #  OK, at this point we do have a makefile, so we need to locate the index
-    #  file, which should be in the same directory. If it's there, we'll load
-    #  up the hash values.
+    #  The file we're versioning may be in a directory that we can't write to,
+    #  so the caller will have set up a working directory for us to use
+    #  instead.
 
-    my ( $vol, $dir, $file ) = File::Spec->splitpath ( $makefile );
+    my ( $vol, $dir, $file );
+    if ( defined $work_dir ) {
+
+      #  Check that this directory exists.
+
+      if ( ! -e $work_dir ) {
+
+        err ( "$work_dir doesn't exist" );
+        return ( 0, { out => \@out, err => \@err } );
+      }
+
+      $dir = $work_dir;
+
+    } else {
+
+      #  OK, at this point we do have a makefile, so we need to locate the index
+      #  file, which should be in the same directory. If it's there, we'll load
+      #  up the hash values.
+
+      ( $vol, $dir, $file ) = File::Spec->splitpath ( $makefile );
+
+    }
     my $full_index_file = File::Spec->catfile ( $dir, $index_file );
+
+    #  Let's check that we can write to this directory -- if not, exit with an
+    #  error.
+
+    if ( ! -w $dir ) {
+
+      err ( "$0: $dir is not writable" );
+
+      return ( 0, { out => \@out, err => \@err } );
+    }
+
+    #  OK, we've dealt with all of the input parameters, and now we're ready to
+    #  start actually doing The Thing.
 
     my %hash_values = ();
 

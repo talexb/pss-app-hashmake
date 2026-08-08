@@ -4,12 +4,14 @@ use strict;
 use warnings;
 
 use Test::More;
+use File::Temp qw/tempdir/;
 
 my $cmd = 'bin/hashmake';
 
 my $default_makefile = 'Hash.Makefile';     #  Duplicated from module :/
 my $other_makefile   = 'other.makefile';
 my $env_makefile     = 'env.makefile';
+my $work_dir         = tempdir ( CLEANUP => 1 );
 
 {
     ok ( -e $cmd, "Script found" );
@@ -26,17 +28,18 @@ my $env_makefile     = 'env.makefile';
 
         foreach my $e ( 0..1 ) {      #  Environment has makefile
 
-          my ( @args, @env );
+          foreach my $w ( 0..1 ) {    #  Working directory specified
 
-          if ( $d ) { push ( @args, '-d' ); }
-          if ( $n ) { push ( @args, '-n' ); }
-          if ( $f ) { push ( @args, "-f $other_makefile" ); }
-          if ( $e ) { push ( @env,  "HASH_MAKEFILE=$env_makefile" ); }
+            my ( @args, @env );
 
-          my $line = join ( ' ', @env, $cmd, @args );
-          my @result = qx/$line/;
+            if ( $d ) { push ( @args, '-d' ); }
+            if ( $n ) { push ( @args, '-n' ); }
+            if ( $f ) { push ( @args, "-f $other_makefile" ); }
+            if ( $e ) { push ( @env,  "HASH_MAKEFILE=$env_makefile" ); }
+            if ( $w ) { push ( @args, "-w $work_dir" ); }
 
-          if ( $d ) {
+            my $line = join ( ' ', @env, $cmd, @args );
+            my @result = qx/$line/;
 
             my $last_make_file;
             foreach my $l ( @result ) {
@@ -75,10 +78,13 @@ my $env_makefile     = 'env.makefile';
 
                 ok ( ! -e $last_make_file, "Makefile $last_make_file not found" );
               }
-            }
-          } else {
 
-            is ( @result, 0, "No results because not debug" );
+              if ( $w && $l =~ /working_dir: (\S+)/ ) {
+
+                my $value = $1;
+                is ( $value, $w, "Working directory requested" );
+              }
+            }
           }
         }
       }
