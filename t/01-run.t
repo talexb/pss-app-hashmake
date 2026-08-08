@@ -82,7 +82,7 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
               if ( $w && $l =~ /working_dir: (\S+)/ ) {
 
                 my $value = $1;
-                is ( $value, $w, "Working directory requested" );
+                is ( $value, $work_dir, "Working directory requested" );
               }
             }
           }
