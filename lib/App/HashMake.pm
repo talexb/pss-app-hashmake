@@ -53,11 +53,12 @@ sub run
 {
     my ( $args ) = @_;
 
-    my $debug      = exists $args->{d} ? 1 : 0;
-    my $print_only = exists $args->{n} ? 1 : 0;
-    my $makefile   = exists $args->{f} ?
+    my $debug         = exists $args->{d} ? 1 : 0;
+    my $print_only    = exists $args->{n} ? 1 : 0;
+    my $makefile      = exists $args->{f} ?
       $args->{f} : ( $HASH_MAKEFILE // $default_hash_makefile );
-    my $work_dir   = $args->{w};
+    my $work_dir      = $args->{w};
+    my $force_rebuild = exists $args->{r} ? 1 : 0;
 
     if ($debug) {
 
@@ -66,7 +67,8 @@ sub run
       my @out = (
         "Settings:",
         "--> print_only: $print_only",
-        "--> makefile: $makefile"
+        "--> makefile: $makefile",
+        "--> force_rebuild: $force_rebuild"
       );
       if ( defined $work_dir ) {
 
@@ -125,7 +127,10 @@ sub run
 
     my %hash_values = ();
 
-    if ( -e $full_index_file ) {
+    #  If the force_rebuild flag is set, it doesn't matter if the index file
+    #  exists, because we're going to act like it's not there.
+
+    if ( ! $force_rebuild && -e $full_index_file ) {
 
       open ( my $fh, '<', $full_index_file );
       while ( <$fh> ) {

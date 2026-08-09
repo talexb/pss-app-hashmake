@@ -18,8 +18,9 @@ use App::HashMake;
     #  n - Print the commands that would be executed.
     #  f - Specify a non-standard hash.makefile
     #  w - Working directory (because we can't write to target directory)
+    #  r - Force rebuild (proceed as if there's no index file).
 
-    getopts ( 'dnf:w:', \my %opts );
+    getopts ( 'dnf:w:r', \my %opts );
 
     # print "Dumping out the opts hash:\n" . Dumper ( \%opts );
 

@@ -30,77 +30,89 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
 
           foreach my $w ( 0..1 ) {    #  Working directory specified
 
-            my ( @args, @env );
+            foreach my $r ( 0..1 ) {    #  Force rebuild
 
-            if ( $d ) { push ( @args, '-d' ); }
-            if ( $n ) { push ( @args, '-n' ); }
-            if ( $f ) { push ( @args, "-f $other_makefile" ); }
-            if ( $e ) { push ( @env,  "HASH_MAKEFILE=$env_makefile" ); }
-            if ( $w ) { push ( @args, "-w $work_dir" ); }
+              my ( @args, @env );
 
-            my $line = join ( ' ', @env, $cmd, @args );
-            my @result = qx/$line/;
+              if ( $d ) { push ( @args, '-d' ); }
+              if ( $n ) { push ( @args, '-n' ); }
+              if ( $f ) { push ( @args, "-f $other_makefile" ); }
+              if ( $e ) { push ( @env,  "HASH_MAKEFILE=$env_makefile" ); }
+              if ( $w ) { push ( @args, "-w $work_dir" ); }
+              if ( $r ) { push ( @args, '-r' ); }
 
-            my $last_make_file;
-            foreach my $l ( @result ) {
+              my $line = join ( ' ', @env, $cmd, @args );
+              my @result = qx/$line/;
 
-              unlike ( $l, qr/Unknown option:/, "Did not see 'unknown option'" ); 
+              my $last_make_file;
+              foreach my $l ( @result ) {
 
-              if ( $l =~ /print_only: (\d)/ ) {
+                unlike ( $l, qr/Unknown option:/, "Did not see 'unknown option'" ); 
 
-                my $value = $1;
-                is ( $value, $n, "Printing value matches" );
+                if ( $l =~ /print_only: (\d)/ ) {
 
-                next;
-              }
+                  my $value = $1;
+                  is ( $value, $n, "Printing value matches" );
 
-              if ( $l =~ /makefile: (\S+)/ ) {
-
-                #  The order of precedence is 1) command line, 2)
-                #  environment, and 3) default.
-
-                $last_make_file = $1;
-                if ( $f ) {
-
-                  is ( $last_make_file, $other_makefile, "Other makefile" );
-
-                }
-                elsif ( $e ) {
-
-                  is ( $last_make_file, $env_makefile, "Env makefile" );
-
-                } else
-                {
-
-                  is ( $last_make_file, $default_makefile, "Default makefile" );
+                  next;
                 }
 
-                next;
+                if ( $l =~ /makefile: (\S+)/ ) {
+
+                  #  The order of precedence is 1) command line, 2)
+                  #  environment, and 3) default.
+
+                  $last_make_file = $1;
+                  if ( $f ) {
+
+                    is ( $last_make_file, $other_makefile, "Other makefile" );
+
+                  }
+                  elsif ( $e ) {
+
+                    is ( $last_make_file, $env_makefile, "Env makefile" );
+
+                  } else
+                  {
+
+                    is ( $last_make_file, $default_makefile, "Default makefile" );
+                  }
+
+                  next;
+                }
+
+                if ( $l =~ /No makefile found/ ) {
+
+                  ok ( ! -e $last_make_file, "Makefile $last_make_file not found" );
+
+                  next;
+                }
+
+                if ( $w && $l =~ /working_dir: (\S+)/ ) {
+
+                  my $value = $1;
+                  is ( $value, $work_dir, "Working directory requested" );
+
+                  next;
+                }
+
+                if ( $l =~ /Settings:/ ) {
+
+                  next;
+                }
+
+                if ( $l =~ /force_rebuild: (\d)/ ) {
+
+                  my $value = $1;
+                  is ( $value, $r, "Force rebuild value matches" );
+
+                  next;
+                }
+
+                #  If there was something that I wasn't expecting, complain.
+
+                fail ( "Unexpected output: $l" );
               }
-
-              if ( $l =~ /No makefile found/ ) {
-
-                ok ( ! -e $last_make_file, "Makefile $last_make_file not found" );
-
-                next;
-              }
-
-              if ( $w && $l =~ /working_dir: (\S+)/ ) {
-
-                my $value = $1;
-                is ( $value, $work_dir, "Working directory requested" );
-
-                next;
-              }
-
-              if ( $l =~ /Settings:/ ) {
-
-                next;
-              }
-
-              #  If there was something that I wasn't expecting, complain.
-
-              fail ( "Unexpected output: $l" );
             }
           }
         }
