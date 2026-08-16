@@ -5,6 +5,7 @@ use warnings;
 
 use Test::More;
 use File::Temp qw/tempdir/;
+use File::Spec;
 
 my $cmd = 'bin/hashmake';
 
@@ -21,6 +22,11 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
     #  debug is always set.
 
     my $d = 1;
+
+    #  Use a temporary file for STDERR so that it doesn't mess up the display
+    #  during tests.
+
+    my $stderr_file = File::Spec->catfile ( $work_dir, 'stderr.out' );
 
     foreach my $n ( 0..1 ) {          #  Print Only
 
@@ -42,7 +48,19 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
               if ( $r ) { push ( @args, '-r' ); }
 
               my $line = join ( ' ', @env, $cmd, @args );
-              my @result = qx/$line/;
+              my @result = qx/$line 2>$stderr_file/;
+
+              #  If anything came out of STDERR, add it to the output list.
+
+              if ( ! -z $stderr_file ) {
+
+                open ( my $fh, '<', $stderr_file );
+                push ( @result, <$fh> );
+                close $fh;
+              }
+
+              #  Since this filename is reused each time through the loop, it's
+              #  not necessary to delete it at this point.
 
               my $last_make_file;
               foreach my $l ( @result ) {
