@@ -34,9 +34,9 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
 
         foreach my $e ( 0..1 ) {      #  Environment has makefile
 
-          foreach my $w ( 0..1 ) {    #  Working directory specified
+          foreach my $y ( 0..1 ) {    #  Working directory specified
 
-            foreach my $r ( 0..1 ) {    #  Force rebuild
+            foreach my $B ( 0..1 ) {    #  Force rebuild
 
               my ( @args, @env );
 
@@ -44,8 +44,8 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
               if ( $n ) { push ( @args, '-n' ); }
               if ( $f ) { push ( @args, "-f $other_makefile" ); }
               if ( $e ) { push ( @env,  "HASH_MAKEFILE=$env_makefile" ); }
-              if ( $w ) { push ( @args, "-w $work_dir" ); }
-              if ( $r ) { push ( @args, '-r' ); }
+              if ( $y ) { push ( @args, "-y $work_dir" ); }
+              if ( $B ) { push ( @args, '-B' ); }
 
               my $line = join ( ' ', @env, $cmd, @args );
               my @result = qx/$line 2>$stderr_file/;
@@ -106,7 +106,7 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
                   next;
                 }
 
-                if ( $w && $l =~ /working_dir: (\S+)/ ) {
+                if ( $y && $l =~ /working_dir: (\S+)/ ) {
 
                   my $value = $1;
                   is ( $value, $work_dir, "Working directory requested" );
@@ -122,7 +122,7 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
                 if ( $l =~ /force_rebuild: (\d)/ ) {
 
                   my $value = $1;
-                  is ( $value, $r, "Force rebuild value matches" );
+                  is ( $value, $B, "Force rebuild value matches" );
 
                   next;
                 }

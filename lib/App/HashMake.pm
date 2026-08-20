@@ -57,8 +57,8 @@ sub run
     my $print_only    = exists $args->{n} ? 1 : 0;
     my $makefile      = exists $args->{f} ?
       $args->{f} : ( $HASH_MAKEFILE // $default_hash_makefile );
-    my $work_dir      = $args->{w};
-    my $force_rebuild = exists $args->{r} ? 1 : 0;
+    my $work_dir      = $args->{7};
+    my $force_rebuild = exists $args->{B} ? 1 : 0;
 
     if ($debug) {
 

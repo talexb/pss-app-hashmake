@@ -6,6 +6,8 @@ use warnings;
 #  2026-0721: Main script for HashMake. Collect command line arguments, set up
 #  the operating environment.
 
+#  2026-0820: Make these arguments mirror the ones from make(1).
+
 use Getopt::Std;
 use Data::Dumper;
 
@@ -17,10 +19,10 @@ use App::HashMake;
     #  d - Turn on debug info.
     #  n - Print the commands that would be executed.
     #  f - Specify a non-standard hash.makefile
-    #  w - Working directory (because we can't write to target directory)
-    #  r - Force rebuild (proceed as if there's no index file).
+    #  y - Working directory (because we can't write to target directory)
+    #  B - Force rebuild (proceed as if there's no index file).
 
-    getopts ( 'dnf:w:r', \my %opts );
+    getopts ( 'dnf:y:B', \my %opts );
 
     # print "Dumping out the opts hash:\n" . Dumper ( \%opts );
 
