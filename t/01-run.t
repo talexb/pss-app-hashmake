@@ -49,6 +49,9 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
 
               my $line = join ( ' ', @env, $cmd, @args );
               my @result = qx/$line 2>$stderr_file/;
+              my $return_code = $?;
+
+              if ( $return_code ) { diag ( "Return code was $return_code" ); }
 
               #  If anything came out of STDERR, add it to the output list.
 

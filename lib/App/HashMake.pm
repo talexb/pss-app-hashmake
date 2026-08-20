@@ -60,6 +60,8 @@ sub run
     my $work_dir      = $args->{7};
     my $force_rebuild = exists $args->{B} ? 1 : 0;
 
+    my $something = 0;  #  Signals if we did (our would have done) something.
+
     if ($debug) {
 
       $verb++;
@@ -81,7 +83,7 @@ sub run
 
       err ( "$0: ERROR: No makefile found, done." );
 
-      return ( 0, { out => \@out, err => \@err } );
+      return ( $something, { out => \@out, err => \@err } );
     }
 
     #  The file we're versioning may be in a directory that we can't write to,
@@ -96,7 +98,7 @@ sub run
       if ( ! -e $work_dir ) {
 
         err ( "$work_dir doesn't exist" );
-        return ( 0, { out => \@out, err => \@err } );
+        return ( $something, { out => \@out, err => \@err } );
       }
 
       $dir = $work_dir;
@@ -119,7 +121,7 @@ sub run
 
       err ( "$0: $dir is not writable" );
 
-      return ( 0, { out => \@out, err => \@err } );
+      return ( $something, { out => \@out, err => \@err } );
     }
 
     #  OK, we've dealt with all of the input parameters, and now we're ready to
@@ -194,7 +196,7 @@ sub run
     if ( !keys %config ) {
 
       msg ( "$0: WARN: No targets found, done." );
-      return ( 0, { out => \@out, err => \@err } );
+      return ( $something, { out => \@out, err => \@err } );
     }
 
     # Now it's time to check out each target. At this point, we're going to be
@@ -249,6 +251,7 @@ sub run
           }
           $action_count++;
         }
+        $something = 1;     #  Whether we actually did anything or not.
 
       } else {
 
@@ -268,7 +271,7 @@ sub run
 
       dbg ( "DEBUG: Updated full_index file $full_index_file." );
     }
-    return ( 0, { out => \@out, err => \@err } );
+    return ( $something, { out => \@out, err => \@err } );
 }
 
 sub dbg
