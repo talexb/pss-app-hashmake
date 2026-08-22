@@ -21,8 +21,9 @@ use App::HashMake;
     #  f - Specify a non-standard hash.makefile
     #  y - Working directory (because we can't write to target directory)
     #  B - Force rebuild (proceed as if there's no index file).
+    #  t - Touch intead of running the commands. (Pretend commands were run.)
 
-    getopts ( 'dnf:y:B', \my %opts );
+    getopts ( 'dnf:y:Bt', \my %opts );
 
     # print "Dumping out the opts hash:\n" . Dumper ( \%opts );
 

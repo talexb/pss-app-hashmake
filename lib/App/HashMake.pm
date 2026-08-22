@@ -59,6 +59,7 @@ sub run
       $args->{f} : ( $HASH_MAKEFILE // $default_hash_makefile );
     my $work_dir      = $args->{7};
     my $force_rebuild = exists $args->{B} ? 1 : 0;
+    my $touch_only    = exists $args->{t} ? 1 : 0;
 
     my $something = 0;  #  Signals if we did (our would have done) something.
 
@@ -245,10 +246,15 @@ sub run
 
         } else {
 
-          foreach my $cmd ( @{ $config{ $target } } ) {
+	  #  Unless it's a touch only situation, run the commands.
 
-            system ( $cmd );        #  Run the command. Yikes.
-          }
+          if ( !$touch_only ) {
+
+            foreach my $cmd ( @{ $config{ $target } } ) {
+
+              system ( $cmd );        #  Run the command. Yikes.
+            }
+	  }
           $action_count++;
         }
         $something = 1;     #  Whether we actually did anything or not.
