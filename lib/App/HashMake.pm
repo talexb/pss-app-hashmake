@@ -152,9 +152,9 @@ sub run
     #  Read the makefile, so that we can undeerstand the targets.
 
     open ( my $fh, '<', $makefile );
-    my ( %config, $target );
+    my ( %config, %targets );
 
-    undef $target;
+    undef %targets;
 
     while ( <$fh> ) {
 
@@ -166,7 +166,7 @@ sub run
         #  Blank line means we're doing with this target's commands if we had a
         #  target to begin with.
 
-        undef $target;
+        undef %targets;
         next;
       }
       
@@ -175,19 +175,23 @@ sub run
       $line =~ s/^\s+x$//;
       $line =~ s/\s+$//;
 
-      if ( defined $target ) {
+      if ( keys %targets ) {
 
-        #  We have a target, so this is a command line for it.
+        #  We have targets, so this is a command line for them.
 
-        push ( @{ $config{ $target } }, $line );
+	foreach my $k ( keys %targets ) {
+
+          push ( @{ $config{ $k } }, $line );
+	}
 
       } else {
 
-        #  Unlike a makefile, which has a target and then a list of dependents,
-        #  we just have a target.
+	#  Allow a list of targets.
 
-        ( $target ) = $line;
-        $config{ $target } = ();	#  No commands for this target so far.
+	undef %targets;
+	my @targets = split ( /\s/, $line );
+	@config{ @targets } = ();	#  No commands for these targets yet.
+	@targets{ @targets } = undef;
       }
     }
     close ( $fh );
@@ -216,54 +220,60 @@ sub run
         next;
       }
 
-      open ( my $fh, '<', $target );
-      my $md5 = Digest::MD5->new;
-      $md5->addfile ( $fh );
-      close ( $fh );
+      #  Handle multiple targets.
 
-      my $digest = $md5->hexdigest;
-      my $action = 0;	#  No action yet;
+      my %digests;
 
-      #  If there are keys, a key exists for this target, and the MD5 value is
-      #  different, OR if there are no keys at all, then do the thing.
+      foreach my $t ( keys %targets ) {
 
-      if ( ( keys %hash_values && exists $hash_values{ $target } &&
-             $hash_values{ $target } ne $digest ) ||
+        open ( my $fh, '<', $t );
+        my $md5 = Digest::MD5->new;
+        $md5->addfile ( $fh );
+        close ( $fh );
+
+        my $digest = $md5->hexdigest;
+        my $action = 0;	#  No action yet;
+
+        #  If there are keys, a key exists for this target, and the MD5 value is
+        #  different, OR if there are no keys at all, then do the thing.
+
+        if ( ( keys %hash_values && exists $hash_values{ $t } &&
+               $hash_values{ $t } ne $digest ) ||
 	   !keys %hash_values ) {
 
-        $action = 1;
-        $hash_values{ $target } = $digest;
-      }
+          $action = 1;
+          $hash_values{ $t } = $digest;
+        }
 
-      #  If we're going to do the actions, this is where it happens. Later,
-      #  we update the index file before we exit.
+        #  If we're going to do the actions, this is where it happens. Later,
+        #  we update the index file before we exit.
 
-      if ( $action ) {
+        if ( $action ) {
 
-        if ( $print_only ) {
+          if ( $print_only ) {
 
-          msg ( map { "Would run this --> $_" } @{ $config{ $target } } );
+            msg ( map { "Would run this --> $_" } @{ $config{ $t } } );
 
-        } else {
+          } else {
 
 	  #  Unless it's a touch only situation, run the commands.
 
-          if ( !$touch_only ) {
+            if ( !$touch_only ) {
 
-            foreach my $cmd ( @{ $config{ $target } } ) {
+              foreach my $cmd ( @{ $config{ $t } } ) {
 
-              system ( $cmd );        #  Run the command. Yikes.
-            }
+                system ( $cmd );        #  Run the command. Yikes.
+              }
 	  }
-          $action_count++;
+            $action_count++;
+          }
+          $something = 1;     #  Whether we actually did anything or not.
+
+        } else {
+
+          dbg ( "DEBUG: Nothing to do for the target $t." );
         }
-        $something = 1;     #  Whether we actually did anything or not.
-
-      } else {
-
-        dbg ( "DEBUG: Nothing to do for the target $target." );
       }
-
     }
 
     if ( $action_count ) {
