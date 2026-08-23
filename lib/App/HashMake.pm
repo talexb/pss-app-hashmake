@@ -194,10 +194,10 @@ sub run
 
 	foreach my $w ( @words ) {
 
-	  #  If there are wild-card characters, use glob to fetch the possible
-	  #  file names.
+	  #  If there are wild-card characters, glob will fetch the possible
+	  #  file names. If not, not.
 
-	  push ( @targets, ( $w =~ /\?\*/ ? glob ( $w ) : $w ) );
+	  push ( @targets, glob ( $w ) );
 	}
 
 	@config{ @targets } = ();	#  No commands for these targets yet.

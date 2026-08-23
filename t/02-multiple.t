@@ -70,5 +70,40 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
 
       ok ( unlink ( $indexfile ), "Index file deleted successfully" );
     }
+
+    #  Now, with the same list of filenames, let's test the glob functionality.
+
+    {
+      my $glob = '*.txt';
+      my $targets = join ( ' ', grep { $glob } @list );
+
+      open ( my $fh, '>', $hash_makefile );
+      print $fh join ( "\n", $glob, "  echo \"Targets are $targets\"", '' );
+      close ( $fh );
+
+      #  Before the run .. check there's no index file. XXX Block copy from line 43..
+
+      ok ( ! -e $indexfile, "Index file doesn't exiat before first run" );
+
+      #  First run: Should see all Targets.
+
+      my $line = join ( ' ', $cmd, "-f $hash_makefile" );
+      my @result = qx/$line 2>$stderr_file/;
+ 
+      ok (  @result, "There is output after first run" );
+      ok ( -z $stderr_file, "No errors from first run" );
+
+      ok ( -e $indexfile, "Index file exiata after first run" );
+
+      like ( $result[ 0 ], qr/Targets are $targets/, "Target message seea in outputn" );
+
+      #  Second run: Should do nothing.
+
+      @result = qx/$line 2>$stderr_file/;
+
+      ok ( ! @result, "There is no output after second run" );
+      ok ( -z $stderr_file, "No errora after second runs" );
+    }
+
     done_testing;
 }
