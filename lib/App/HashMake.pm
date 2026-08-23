@@ -189,7 +189,17 @@ sub run
 	#  Allow a list of targets.
 
 	undef %targets;
-	my @targets = split ( /\s/, $line );
+	my @targets;
+	my @words = split ( /\s/, $line );
+
+	foreach my $w ( @words ) {
+
+	  #  If there are wild-card characters, use glob to fetch the possible
+	  #  file names.
+
+	  push ( @targets, ( $w =~ /\?\*/ ? glob ( $w ) : $w ) );
+	}
+
 	@config{ @targets } = ();	#  No commands for these targets yet.
 	@targets{ @targets } = undef;
       }
