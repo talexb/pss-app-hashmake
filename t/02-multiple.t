@@ -7,7 +7,7 @@ use Test::More;
 use File::Temp qw/tempdir/;
 use File::Spec;
 
-use Data::Dumper;	# XXX Remove later
+use autodie;
 
 my $cmd = 'bin/hashmake';
 
@@ -57,7 +57,7 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
 
       like ( $result[ 0 ], qr/Targets are $targets/, "Target message seen" );
 
-      #  Seecond run: Should do nothing.
+      #  Second run: Should do nothing.
 
       @result = qx/$line 2>$stderr_file/;
 
@@ -67,7 +67,7 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
       #  Here we need to do cleanup so that the index file isn't here the
       #  next time through the loop. Except make(1) doesn't have a command
       #  line option to clean, and the module I'm calling also doesn't have a
-      #  method to clean. So maybe I need to add that later.
+      #  method to clean. So maybe I need to add that later. TODO
 
       ok ( unlink ( $indexfile ), "Index file deleted" );
     }
