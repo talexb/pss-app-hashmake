@@ -20,7 +20,7 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
     #  I'm going to use a temporary directory and create a temporary
     #  Hash_Makefile with 1, 2 and 3 files, and also create those three files.
 
-    my @list = qw/foo bar baz/;
+    my @list = qw/foo.txt bar.txt baz/;
 
     my $stderr_file   = File::Spec->catfile ( $work_dir, 'stderr.out' );
     my $hash_makefile = File::Spec->catfile ( $work_dir, $other_makefile );
@@ -35,7 +35,6 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
       close ( $fh );
 
       my $targets = join ( ' ', @list[ 0..($c-1) ] );
-      ok ( 1, "Targets are $targets" );
 
       open ( $fh, '>', $hash_makefile );
       print $fh join ( "\n", $targets, "  echo \"Targets are $targets\"", '' );
@@ -43,33 +42,33 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
  
       #  Before the run .. check there's no index file.
 
-      ok ( ! -e $indexfile, "Index file doesn't exiat" );
+      ok ( ! -e $indexfile, "Index file doesn't exiat before first run" );
 
       #  First run: Should see all Targets.
 
       my $line = join ( ' ', $cmd, "-f $hash_makefile" );
       my @result = qx/$line 2>$stderr_file/;
  
-      ok (  @result, "There is output" );
-      ok ( -z $stderr_file, "No errors" );
+      ok (  @result, "There is output after first run" );
+      ok ( -z $stderr_file, "No errors from first run" );
 
-      ok ( -e $indexfile, "Index file exiata" );
+      ok ( -e $indexfile, "Index file exiata after first run" );
 
-      like ( $result[ 0 ], qr/Targets are $targets/, "Target message seen" );
+      like ( $result[ 0 ], qr/Targets are $targets/, "Target message seea in outputn" );
 
       #  Second run: Should do nothing.
 
       @result = qx/$line 2>$stderr_file/;
 
-      ok ( ! @result, "There is no output" );
-      ok ( -z $stderr_file, "No errors" );
+      ok ( ! @result, "There is no output after second run" );
+      ok ( -z $stderr_file, "No errora after second runs" );
 
       #  Here we need to do cleanup so that the index file isn't here the
       #  next time through the loop. Except make(1) doesn't have a command
       #  line option to clean, and the module I'm calling also doesn't have a
       #  method to clean. So maybe I need to add that later. TODO
 
-      ok ( unlink ( $indexfile ), "Index file deleted" );
+      ok ( unlink ( $indexfile ), "Index file deleted successfully" );
     }
     done_testing;
 }
