@@ -300,6 +300,10 @@ sub run
     return ( $something, { out => \@out, err => \@err } );
 }
 
+=head2 dbg
+
+=cut
+
 sub dbg
 {
     my ( @msg ) = @_;
@@ -307,12 +311,20 @@ sub dbg
    if ( $verb > 1 ) { push ( @out, @msg ); }
 }
 
+=head2 msg
+
+=cut
+
 sub msg
 {
     my ( @msg ) = @_;
 
    push ( @out, @msg );
 }
+
+=head2 err
+
+=cut
 
 sub err
 {
