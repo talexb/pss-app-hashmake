@@ -102,7 +102,7 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
                   next;
                 }
 
-                if ( $l =~ /No makefile found/ ) {
+                if ( $l =~ /Makefile (\S+) not found/ ) {
 
                   ok ( ! -e $last_make_file, "Makefile $last_make_file not found" );
 

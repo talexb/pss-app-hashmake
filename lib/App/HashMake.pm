@@ -9,6 +9,8 @@ use Env qw(HASH_MAKEFILE);
 use File::Spec;
 use Digest::MD5;
 
+use autodie;
+
 =head1 NAME
 
 App::HashMake - Perform make-like actions based on target file's MD5 hash value
@@ -77,12 +79,15 @@ sub run
 
       $verb++;
 
-      my @out = (
-        "Settings:",
-        "--> print_only: $print_only",
-        "--> makefile: $makefile",
-        "--> force_rebuild: $force_rebuild"
+      my @opts = (
+        { name => 'print_only',    value => $print_only },
+        { name => 'makefile',      value => $makefile },
+        { name => 'force_rebuild', value => $force_rebuild },
       );
+
+      push ( @out, "Settings:",
+        ( map { "--> $_->{ name }: $_->{ value }" } @opts ) );
+
       if ( defined $work_dir ) {
 
         push( @out, "--> working_dir: $work_dir" );
@@ -92,7 +97,7 @@ sub run
 
     if ( ! -e $makefile ) {
 
-      err ( "$0: ERROR: No makefile found, done." );
+      err ( "$0: ERROR: Makefile $makefile not found, done." );
 
       return ( $something, { out => \@out, err => \@err } );
     }
@@ -168,7 +173,7 @@ sub run
 
     while ( <$fh> ) {
 
-      next if ( /^#/ );		#  Skip comments
+      next if ( /^#/ );        	#  Skip comments
 
       my $line = $_;
       if ( $line =~ /^\s+$/ ) {
@@ -189,29 +194,29 @@ sub run
 
         #  We have targets, so this is a command line for them.
 
-	foreach my $k ( keys %targets ) {
+        foreach my $k ( keys %targets ) {
 
           push ( @{ $config{ $k } }, $line );
-	}
+        }
 
       } else {
 
-	#  Allow a list of targets.
+        #  Allow a list of targets.
 
-	undef %targets;
-	my @targets;
-	my @words = split ( /\s/, $line );
+        undef %targets;
+        my @targets;
+        my @words = split ( /\s/, $line );
 
-	foreach my $w ( @words ) {
+        foreach my $w ( @words ) {
 
-	  #  If there are wild-card characters, glob will fetch the possible
-	  #  file names. If not, not.
+          #  If there are wild-card characters, glob will fetch the possible
+          #  file names. If not, not.
 
-	  push ( @targets, glob ( $w ) );
-	}
+          push ( @targets, glob ( $w ) );
+        }
 
-	@config{ @targets } = ();	#  No commands for these targets yet.
-	@targets{ @targets } = undef;
+        @config{ @targets } = ();	#  No commands for these targets yet.
+        @targets{ @targets } = undef;
       }
     }
     close ( $fh );
@@ -229,70 +234,65 @@ sub run
     # fine.
 
     my $action_count = 0;
-    foreach my $target ( keys %config ) {
+    foreach my $t ( keys %config ) {
 
       #  Find the MD5 of the target, and see if our value matches the one from
       #  the index file.
 
-      if ( !-e $target ) {
+      if ( ! -e $t ) {
 
-        msg ( "$0: WARN: Target $target does not exist." );
+        msg ( "$0: WARN: Target $t does not exist." );
         next;
       }
 
-      #  Handle multiple targets.
-
       my %digests;
 
-      foreach my $t ( keys %targets ) {
+      open ( my $fh, '<', $t );
+      my $md5 = Digest::MD5->new;
+      $md5->addfile ( $fh );
+      close ( $fh );
 
-        open ( my $fh, '<', $t );
-        my $md5 = Digest::MD5->new;
-        $md5->addfile ( $fh );
-        close ( $fh );
+      my $digest = $md5->hexdigest;
+      my $action = 0;        #  No action yet;
 
-        my $digest = $md5->hexdigest;
-        my $action = 0;	#  No action yet;
+      #  If there are keys, a key exists for this target, and the MD5 value is
+      #  different, OR if there are no keys at all, then do the thing.
 
-        #  If there are keys, a key exists for this target, and the MD5 value is
-        #  different, OR if there are no keys at all, then do the thing.
+      if ( ( keys %hash_values && exists $hash_values{ $t } &&
+             $hash_values{ $t } ne $digest ) ||
+         !keys %hash_values ) {
 
-        if ( ( keys %hash_values && exists $hash_values{ $t } &&
-               $hash_values{ $t } ne $digest ) ||
-	   !keys %hash_values ) {
+        $action = 1;
+        $hash_values{ $t } = $digest;
+      }
 
-          $action = 1;
-          $hash_values{ $t } = $digest;
-        }
+      #  If we're going to do the actions, this is where it happens. Later,
+      #  we update the index file before we exit.
 
-        #  If we're going to do the actions, this is where it happens. Later,
-        #  we update the index file before we exit.
+      if ( $action ) {
 
-        if ( $action ) {
+        if ( $print_only ) {
 
-          if ( $print_only ) {
-
-            msg ( map { "Would run this --> $_" } @{ $config{ $t } } );
-
-          } else {
-
-	  #  Unless it's a touch only situation, run the commands.
-
-            if ( !$touch_only ) {
-
-              foreach my $cmd ( @{ $config{ $t } } ) {
-
-                system ( $cmd );        #  Run the command. Yikes.
-              }
-	  }
-            $action_count++;
-          }
-          $something = 1;     #  Whether we actually did anything or not.
+          msg ( map { "Would run this --> $_" } @{ $config{ $t } } );
 
         } else {
 
-          dbg ( "DEBUG: Nothing to do for the target $t." );
+          #  Unless it's a touch only situation, run the commands.
+
+          if ( !$touch_only ) {
+
+            foreach my $cmd ( @{ $config{ $t } } ) {
+
+              system ( $cmd );        #  Run the command. Yikes.
+            }
+          }
+          $action_count++;
         }
+        $something = 1;     #  Whether we actually did anything or not.
+
+      } else {
+
+        dbg ( "DEBUG: Nothing to do for the target $t." );
       }
     }
 
