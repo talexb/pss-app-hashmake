@@ -11,7 +11,7 @@ use Digest::MD5;
 
 =head1 NAME
 
-App::HashMake - The great new App::HashMake!
+App::HashMake - Perform make-like actions based on target file's MD5 hash value
 
 =head1 VERSION
 
@@ -26,23 +26,33 @@ our $index_file = '.hash_index';
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
+This module executes the logic of hashmake, based on the input arguments.
+Hashmake operates just like make(1), except it looks at the MD5 hash value of a
+file, using a hidden file to store these values. If the hash value has changed,
+the action is executed.
 
-Perhaps a little code snippet.
+Instead of Makefile, hashmake looks for Hash.Makefile to decide what to do.
+An alternative makefile can be provided using the -f argument.
 
-    use App::HashMake;
+The hash values are stored in a hidden file called .hash_index. For now, this
+file is located in the same directory as the target file, but I may have to ask
+the caller to provide an alternate directory if the target directory's not
+writable.
 
-    my $result = App::HashMake->run();
-    ...
+Perhaps an example of how it would be called from the command line.
 
-=head1 EXPORT
-
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
+    $ hashmake
+    (Hashmake does it's thing with the default build file)
+    $ hashmake -d
+    (Hashmake explains all of the current settings.)
+    $
 
 =head1 SUBROUTINES/METHODS
 
 =head2 run
+
+Run the make procedure. Returns the exit status, along with the output from
+STDOUT and STDERR. Called from the hashmake executable.
 
 =cut
 
@@ -302,6 +312,9 @@ sub run
 
 =head2 dbg
 
+Internal routine:
+Debug messages are output when the verbosity level is 2.
+
 =cut
 
 sub dbg
@@ -313,6 +326,9 @@ sub dbg
 
 =head2 msg
 
+Internal routine:
+Regular messages are output when the verbosity level is 1.
+
 =cut
 
 sub msg
@@ -323,6 +339,9 @@ sub msg
 }
 
 =head2 err
+
+Internal routine:
+Error messages always get output.
 
 =cut
 
