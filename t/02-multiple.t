@@ -105,5 +105,9 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
       ok ( -z $stderr_file, "No errora after second runs" );
     }
 
+    #  Clean up temporary files.
+
+    is ( unlink ( @list ), scalar @list, "Temporary files deleted" );
+
     done_testing;
 }
