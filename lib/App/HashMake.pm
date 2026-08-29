@@ -77,6 +77,7 @@ sub run
 
     if ($debug) {
 
+      my @output;
       $verb++;
 
       my @opts = (
@@ -85,14 +86,14 @@ sub run
         { name => 'force_rebuild', value => $force_rebuild },
       );
 
-      push ( @out, "Settings:",
+      push ( @output, "Settings:",
         ( map { "--> $_->{ name }: $_->{ value }" } @opts ) );
 
       if ( defined $work_dir ) {
 
-        push( @out, "--> working_dir: $work_dir" );
+        push( @output, "--> working_dir: $work_dir" );
       }
-      msg ( @out );
+      msg ( @output );
     }
 
     if ( ! -e $makefile ) {

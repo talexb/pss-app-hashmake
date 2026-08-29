@@ -17,13 +17,14 @@ use App::HashMake;
 
 {
     #  d - Turn on debug info.
+    #  s - Don't output messages.
     #  n - Print the commands that would be executed.
     #  f - Specify a non-standard hash.makefile
     #  y - Working directory (because we can't write to target directory)
     #  B - Force rebuild (proceed as if there's no index file).
     #  t - Touch intead of running the commands. (Pretend commands were run.)
 
-    getopts ( 'dnf:y:Bt', \my %opts );
+    getopts ( 'dsnf:y:Bt', \my %opts );
 
     # print "Dumping out the opts hash:\n" . Dumper ( \%opts );
 
@@ -37,7 +38,7 @@ use App::HashMake;
 
       print STDERR join ( "\n", @{ $output->{ err } } ) . "\n";
     }
-    if ( @{ $output->{ out } } ) {
+    if ( @{ $output->{ out } } && ! exists $opts{ s } ) {
 
       print join ( "\n", @{ $output->{ out } } ) . "\n";
     }
