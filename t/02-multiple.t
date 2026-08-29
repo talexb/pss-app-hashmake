@@ -61,7 +61,7 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
       @result = qx/$line 2>$stderr_file/;
 
       ok ( ! @result, "There is no output after second run" );
-      ok ( -z $stderr_file, "No errora after second runs" );
+      ok ( -z $stderr_file, "No errors after second runs" );
 
       #  Here we need to do cleanup so that the index file isn't here the
       #  next time through the loop. Except make(1) doesn't have a command
@@ -102,7 +102,7 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
       @result = qx/$line 2>$stderr_file/;
 
       ok ( ! @result, "There is no output after second run" );
-      ok ( -z $stderr_file, "No errora after second runs" );
+      ok ( -z $stderr_file, "No errors after second runs" );
     }
 
     #  Clean up temporary files.

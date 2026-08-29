@@ -81,9 +81,11 @@ sub run
       $verb++;
 
       my @opts = (
+        { name => 'debug',         value => $debug },
         { name => 'print_only',    value => $print_only },
         { name => 'makefile',      value => $makefile },
         { name => 'force_rebuild', value => $force_rebuild },
+        { name => 'touch_only',    value => $touch_only },
       );
 
       push ( @output, "Settings:",
