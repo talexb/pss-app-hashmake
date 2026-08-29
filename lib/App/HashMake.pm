@@ -30,24 +30,46 @@ our $index_file = '.hash_index';
 
 This module executes the logic of hashmake, based on the input arguments.
 Hashmake operates just like make(1), except it looks at the MD5 hash value of a
-file, using a hidden file to store these values. If the hash value has changed,
-the action is executed.
+target file, using a hidden file to store these hash values for each target. If
+the hash value of a file has changed, the action is executed.
 
 Instead of Makefile, hashmake looks for Hash.Makefile to decide what to do.
 An alternative makefile can be provided using the -f argument.
 
-The hash values are stored in a hidden file called .hash_index. For now, this
-file is located in the same directory as the target file, but I may have to ask
-the caller to provide an alternate directory if the target directory's not
-writable.
+The hash values are stored in a hidden file called .hash_index, located in the
+same directory as the target file. The caller can also provide an alternate
+directory if the target directory's not writable.
 
-Perhaps an example of how it would be called from the command line.
+A sample Hash.Makefile could look like this:
+
+    foo.txt
+    echo "I found foo!"
+
+When hashmake is run for the first time, no MD5 is known for this file, so the
+action is completed, and the MD5 hash value for the file is stored. Running the
+same command a moment later will do nothing, since the MD5 of the file hasn't
+changed.
+
+Here's an example of how it would be called from the command line.
 
     $ hashmake
-    (Hashmake does it's thing with the default build file)
+    (Hashmake does it's thing with the default build file Hash.Makefile)
     $ hashmake -d
     (Hashmake explains all of the current settings.)
     $
+
+The variable $@ in a Hash.Makefile line will be replaced with the target. So
+the Hash.Makefile line
+
+    foo.txt bar.txt
+    echo "Found $@"
+
+should produce output like this:
+
+    echo foo.txt
+    echo bar.txt
+
+If both of the files had no MD5s or different MD5s.
 
 =head1 SUBROUTINES/METHODS
 
@@ -280,9 +302,14 @@ sub run
 
       if ( $action ) {
 
+        #  See if the magic variable $@ is on any of the lines -- and if so,
+        #  replace it with the current target.
+
+        my @cmds = map { s/\$\@/$t/ge; $_ } @{ $config{ $t } };
+
         if ( $print_only ) {
 
-          msg ( map { "Would run this --> $_" } @{ $config{ $t } } );
+          msg ( map { "Would run this --> $_" } @cmds );
 
         } else {
 
@@ -290,7 +317,7 @@ sub run
 
           if ( !$touch_only ) {
 
-            foreach my $cmd ( @{ $config{ $t } } ) {
+            foreach my $cmd ( @cmds ) {
 
               system ( $cmd );        #  Run the command. Yikes.
             }
