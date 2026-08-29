@@ -69,7 +69,7 @@ sub run
     my $print_only    = exists $args->{n} ? 1 : 0;
     my $makefile      = exists $args->{f} ?
       $args->{f} : ( $HASH_MAKEFILE // $default_hash_makefile );
-    my $work_dir      = $args->{7};
+    my $work_dir      = $args->{y};
     my $force_rebuild = exists $args->{B} ? 1 : 0;
     my $touch_only    = exists $args->{t} ? 1 : 0;
 
@@ -151,6 +151,8 @@ sub run
 
     if ( ! $force_rebuild && -e $full_index_file ) {
 
+      dbg ( "Reading index file $full_index_file" );
+
       open ( my $fh, '<', $full_index_file );
       while ( <$fh> ) {
 
@@ -166,6 +168,8 @@ sub run
     }
 
     #  Read the makefile, so that we can undeerstand the targets.
+
+    dbg ( "Reading makefile $makefile" );
 
     open ( my $fh, '<', $makefile );
     my ( %config, %targets );
@@ -234,6 +238,8 @@ sub run
     # checking them in heap order (so, random). I assume that's going to be
     # fine.
 
+    dbg ( "Checking targets" );
+
     my $action_count = 0;
     foreach my $t ( keys %config ) {
 
@@ -293,7 +299,7 @@ sub run
 
       } else {
 
-        dbg ( "DEBUG: Nothing to do for the target $t." );
+        dbg ( "Nothing to do for the target $t." );
       }
     }
 
@@ -306,7 +312,7 @@ sub run
         map { "$_ $hash_values{ $_ }" } keys %hash_values ) . "\n";
       close ( $fh );
 
-      dbg ( "DEBUG: Updated full_index file $full_index_file." );
+      dbg ( "Updated full_index file $full_index_file." );
     }
     return ( $something, { out => \@out, err => \@err } );
 }
