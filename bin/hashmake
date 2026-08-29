@@ -15,7 +15,15 @@ use lib 'lib';
 
 use App::HashMake;
 
+my @version_info = ( <<VERSION
+Hashmake $App::HashMake::VERSION
+Copyright (c) 2026 by T. Alex Beamish
+License: Artistic License 2.0
+VERSION
+);
+
 {
+    #  v - Show version information and quit. Overrides all other arguments.
     #  d - Turn on debug info.
     #  s - Don't output messages.
     #  n - Print the commands that would be executed.
@@ -24,9 +32,13 @@ use App::HashMake;
     #  B - Force rebuild (proceed as if there's no index file).
     #  t - Touch intead of running the commands. (Pretend commands were run.)
 
-    getopts ( 'dsnf:y:Bt', \my %opts );
+    getopts ( 'vdsnf:y:Bt', \my %opts );
 
-    # print "Dumping out the opts hash:\n" . Dumper ( \%opts );
+    if ( exists $opts{ v } ) {
+
+      print join ( "\n", @version_info );
+      exit ( 0 );
+    }
 
     my ( $result, $output ) = App::HashMake::run ( \%opts );
 
