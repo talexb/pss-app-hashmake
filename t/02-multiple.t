@@ -39,36 +39,8 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
       open ( $fh, '>', $hash_makefile );
       print $fh join ( "\n", $targets, "  echo \"Targets are $targets\"", '' );
       close ( $fh );
- 
-      #  Before the run .. check there's no index file.
 
-      ok ( ! -e $indexfile, "Index file doesn't exiat before first run" );
-
-      #  First run: Should see all Targets.
-
-      my $line = join ( ' ', $cmd, "-f $hash_makefile" );
-      my @result = qx/$line 2>$stderr_file/;
- 
-      ok (  @result, "There is output after first run" );
-      ok ( -z $stderr_file, "No errors from first run" );
-
-      ok ( -e $indexfile, "Index file exiata after first run" );
-
-      like ( $result[ 0 ], qr/Targets are $targets/, "Target message seea in outputn" );
-
-      #  Second run: Should do nothing.
-
-      @result = qx/$line 2>$stderr_file/;
-
-      ok ( ! @result, "There is no output after second run" );
-      ok ( -z $stderr_file, "No errors after second runs" );
-
-      #  Here we need to do cleanup so that the index file isn't here the
-      #  next time through the loop. Except make(1) doesn't have a command
-      #  line option to clean, and the module I'm calling also doesn't have a
-      #  method to clean. So maybe I need to add that later. TODO
-
-      ok ( unlink ( $indexfile ), "Index file deleted successfully" );
+      common_test_block ( $indexfile, $cmd, $hash_makefile, $stderr_file );
     }
 
     #  Now, with the same list of filenames, let's test the glob functionality.
@@ -81,28 +53,7 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
       print $fh join ( "\n", $glob, "  echo \"Targets are $targets\"", '' );
       close ( $fh );
 
-      #  Before the run .. check there's no index file. XXX Block copy from line 43..
-
-      ok ( ! -e $indexfile, "Index file doesn't exiat before first run" );
-
-      #  First run: Should see all Targets.
-
-      my $line = join ( ' ', $cmd, "-f $hash_makefile" );
-      my @result = qx/$line 2>$stderr_file/;
- 
-      ok (  @result, "There is output after first run" );
-      ok ( -z $stderr_file, "No errors from first run" );
-
-      ok ( -e $indexfile, "Index file exiata after first run" );
-
-      like ( $result[ 0 ], qr/Targets are $targets/, "Target message seea in outputn" );
-
-      #  Second run: Should do nothing.
-
-      @result = qx/$line 2>$stderr_file/;
-
-      ok ( ! @result, "There is no output after second run" );
-      ok ( -z $stderr_file, "No errors after second runs" );
+      common_test_block ( $indexfile, $cmd, $hash_makefile, $stderr_file, $targets );
     }
 
     #  Clean up temporary files.
@@ -110,4 +61,44 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
     is ( unlink ( @list ), scalar @list, "Temporary files deleted" );
 
     done_testing;
+}
+
+sub common_test_block
+{
+    my ( $indexfile, $cmd, $hash_makefile, $stderr_file, $targets ) = @_;
+
+    #  Before the run .. check there's no index file.
+
+    ok ( ! -e $indexfile, "Index file doesn't exiat before first run" );
+
+    #  First run: Should see all Targets.
+
+    my $line = join ( ' ', $cmd, "-f $hash_makefile" );
+    my @result = qx/$line 2>$stderr_file/;
+ 
+    ok (  @result, "There is output after first run" );
+    ok ( -z $stderr_file, "No errors from first run" );
+
+    ok ( -e $indexfile, "Index file exiata after first run" );
+
+    #  Only relevant for the second call where we test for glob functionality.
+
+    if ( defined $targets ) {
+
+      like ( $result[ 0 ], qr/Targets are $targets/, "Target message seea in outputn" );
+    }
+
+    #  Second run: Should do nothing.
+
+    @result = qx/$line 2>$stderr_file/;
+
+    ok ( ! @result, "There is no output after second run" );
+    ok ( -z $stderr_file, "No errors after second runs" );
+
+    #  Here we need to do cleanup so that the index file isn't here the
+    #  next time through the loop. Except make(1) doesn't have a command
+    #  line option to clean, and the module I'm calling also doesn't have a
+    #  method to clean. So maybe I need to add that later. TODO
+
+    ok ( unlink ( $indexfile ), "Index file deleted successfully" );
 }
