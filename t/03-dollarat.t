@@ -26,11 +26,11 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
     my $hash_makefile = File::Spec->catfile ( $work_dir, $other_makefile );
     my $indexfile     = File::Spec->catfile ( $work_dir, '.hash_index' );
 
-    open ( my $fh, '>', $hash_makefile );
-    foreach my $t ( @list ) {
+    #  We want the list of targets, followed by a single line with $@.
 
-      print $fh "$t\n" . q{    echo "Target is $@"} . "\n";
-    }
+    open ( my $fh, '>', $hash_makefile );
+    print $fh join ( ' ', @list ) . "\n";
+    print $fh q{    echo "Target is $@"} . "\n";
     close ( $fh );
 
     #  Suspiciously similar to the common_test_block in test 02.
@@ -55,8 +55,10 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
     foreach my $l ( @result ) {
 
       my ( $t ) = $l =~ /Target is (\S+)/;
-      ok ( defined $t, "Target is defined" );
-      ok ( exists $lookfor{ $t }, "Saw target $t" );
+      next if ( !defined $t );
+
+      ok ( defined $t, "Target $t was seen" );
+      ok ( exists $lookfor{ $t }, "Target $t was on the list" );
 
       delete $lookfor{ $t };
     }

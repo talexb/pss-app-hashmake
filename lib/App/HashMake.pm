@@ -71,6 +71,29 @@ should produce output like this:
 
 If both of the files had no MD5s or different MD5s.
 
+=head1 ARGUMENTS
+
+    -d    Debug / This outputs useful information about what steps are being
+          taken during processing.
+
+    -n    Print only / This just prints out what commands would have been run.
+
+    -f FILE
+          Specify the hash makefile if the standard Hash.Makefile is not being
+          used.
+
+    -y DIR
+          Specify a work directory for the index file if the hash makefile's
+          directory is not writable.
+
+     -B   Force rebuild / ignores the 'has it changed' element and just rebuild
+          everything.
+
+     -s   Silent / Don't output anything that would normally be output. Error
+          messages are still output.
+
+     -t   Touch only / Mark all targets as being the latest.
+
 =head1 SUBROUTINES/METHODS
 
 =head2 run
@@ -250,6 +273,8 @@ sub run
     }
     close ( $fh );
 
+    dbg ( "Targets found are: " . join ( '/', keys %config ) );
+
     #  Nothing actionable in the makefile? Get out.
 
     if ( !keys %config ) {
@@ -266,6 +291,8 @@ sub run
 
     my $action_count = 0;
     foreach my $t ( keys %config ) {
+
+      dbg ( "Checking target $t" );
 
       #  Find the MD5 of the target, and see if our value matches the one from
       #  the index file.
@@ -286,15 +313,22 @@ sub run
       my $digest = $md5->hexdigest;
       my $action = 0;        #  No action yet;
 
-      #  If there are keys, a key exists for this target, and the MD5 value is
-      #  different, OR if there are no keys at all, then do the thing.
+      #  If this is a forced rebuild -- we have to do the action OR If a key
+      #  does exist, but it doesn't match the current value -- we have to do
+      #  the action.  Otherwise -- the key exists and matches, and there's no
+      #  action.
 
-      if ( ( keys %hash_values && exists $hash_values{ $t } &&
-             $hash_values{ $t } ne $digest ) ||
-         !keys %hash_values ) {
+      if ( !$force_rebuild &&
+           ( exists $hash_values{ $t } && $hash_values{ $t } eq $digest ) ) {
+
+        dbg ( "Key up to date for $t -- no action" );
+
+      } else {
 
         $action = 1;
         $hash_values{ $t } = $digest;
+
+        dbg ( "Target $t needs action" );
       }
 
       #  If we're going to do the actions, this is where it happens. Later,
@@ -342,6 +376,7 @@ sub run
       close ( $fh );
 
       dbg ( "Updated full_index file $full_index_file." );
+      dbg ( "--> keys updated: " . join ( '/', keys %hash_values ) );
     }
     return ( $something, { out => \@out, err => \@err } );
 }
