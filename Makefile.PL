@@ -27,11 +27,11 @@ my %WriteMakefileArgs = (
         resources   => {
             repository => {
                 type => 'git',
-                url  => 'https://github.com/talexb/App-HashMake.git',
-                web  => 'https://github.com/talexb/App-HashMake',
+                url  => 'https://github.com/talexb/pss-app-hashmake.git',
+                web  => 'https://github.com/talexb/pss-app-hashmake',
             },
             bugtracker => {
-                web => 'https://github.com/talexb/App-HashMake/issues',
+                web => 'https://github.com/talexb/pss-app-hashmake/issues',
             },
         },
     },

@@ -9,7 +9,6 @@ use warnings;
 #  2026-0820: Make these arguments mirror the ones from make(1).
 
 use Getopt::Std;
-use Data::Dumper;
 
 use lib 'lib';
 
@@ -46,10 +45,15 @@ VERSION
     #  send anything. This allows us to do testing without having to capture
     #  the output.  This may or may not be a smart approach.
 
+    #  If there are errors, output them.
+
     if ( @{ $output->{ err } } ) {
 
       print STDERR join ( "\n", @{ $output->{ err } } ) . "\n";
     }
+
+    #  If there's output, and we're not in silent mode, output it.
+
     if ( @{ $output->{ out } } && ! exists $opts{ s } ) {
 
       print join ( "\n", @{ $output->{ out } } ) . "\n";
