@@ -17,10 +17,19 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
 {
     #  Test that expanding $@ works correctly.
 
-    #  From test 02: I'm going to use a temporary directory and create a
-    #  temporary Hash_Makefile with a $@ element in the command line.
+    #  Create the file targets (list below) in the temporary directory.
 
     my @list = qw/foo bar/;
+
+    foreach my $f ( @list ) {
+
+      open ( my $fh, '>', $f );
+      print $fh "Something something.\n";
+      close ( $fh );
+    }
+
+    #  From test 02: I'm going to use a temporary directory and create a
+    #  temporary Hash_Makefile with a $@ element in the command line.
 
     my $stderr_file   = File::Spec->catfile ( $work_dir, 'stderr.out' );
     my $hash_makefile = File::Spec->catfile ( $work_dir, $other_makefile );
@@ -37,7 +46,7 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
 
     #  Before the run .. check there's no index file.
 
-    ok ( ! -e $indexfile, "Index file doesn't exiat before first run" );
+    ok ( ! -e $indexfile, "Index file doesn't exist before first run" );
 
     #  First run: Should see all Targets.
 
@@ -70,6 +79,10 @@ my $work_dir         = tempdir ( CLEANUP => 1 );
 
     ok ( ! @result, "There is no output after second run" );
     ok ( -z $stderr_file, "No errors after second runs" );
+
+    #  Cleanup at the end by deleting the test files.
+
+    is ( unlink ( @list ), scalar @list, "Temporary files deleted" );
 
     done_testing;
 }
