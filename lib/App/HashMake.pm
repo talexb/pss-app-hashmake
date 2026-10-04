@@ -82,7 +82,8 @@ If both of the files had no MD5s or different MD5s.
 
     -f FILE
           Specify the hash makefile if the standard Hash.Makefile is not being
-          used.
+          used. The environment variable HASH_MAKEFILE can also be used for
+          this.
 
     -h    Display information on the command line arguments.
 

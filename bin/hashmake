@@ -49,7 +49,8 @@ VERSION
         'd'      => "Turn on debug info.",
         's'      => "Don't output messages.",
         'n'      => "Print the commands that would be executed.",
-        'f FILE' => "Specify a non-standard hash.makefile. Default is Hash.Makefile",
+        'f FILE' => "Specify a non-standard hash.makefile. Default is Hash.Makefile,\n" .
+          "          and the environment variable HASH_MAKEFILE can also be used for this.",
         'y DIR'  => "Working directory (if the target directory is not writable)",
         'B'      => "Force rebuild (proceed as if there's no index file).",
         't'      => "Touch intead of running the commands. (Pretend commands were run.)",
