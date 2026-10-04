@@ -30,15 +30,16 @@ our $index_file = '.hash_index';
 
 This module executes the logic of hashmake, based on the input arguments.
 Hashmake operates just like make(1), except it looks at the MD5 hash value of a
-target file, using a hidden file (.hash_index) to store these hash values for
-each target. If the hash value of a file has changed, the action is executed.
+target file, using a hidden file (.hash_index) to store and check these hash
+values for each target. If the hash value of a file has changed, the action is
+executed.
 
 Instead of Makefile, hashmake looks for Hash.Makefile to decide what to do.
 An alternative makefile can be provided using the -f argument.
 
 The hash values are stored in a hidden file called .hash_index, located in the
 same directory as the makefile. The caller can also provide an alternate
-directory if the target directory's not writable.
+working directory if the target directory's not writable.
 
 A sample Hash.Makefile could look like this:
 
@@ -73,26 +74,30 @@ If both of the files had no MD5s or different MD5s.
 
 =head1 ARGUMENTS
 
+    -B    Force rebuild / ignores the 'has it changed' element and just rebuild
+          everything.
+
     -d    Debug / This outputs useful information about what steps are being
           taken during processing.
-
-    -n    Print only / This just prints out what commands would have been run.
 
     -f FILE
           Specify the hash makefile if the standard Hash.Makefile is not being
           used.
 
+    -h    Display information on the command line arguments.
+
+    -n    Print only / This just prints out what commands would have been run.
+
+    -s    Silent / Don't output anything that would normally be output. Error
+          messages are still output.
+
+    -t    Touch only / Mark all targets as being the latest.
+
+    -v    Display version information.
+
     -y DIR
           Specify a work directory for the index file if the hash makefile's
           directory is not writable.
-
-     -B   Force rebuild / ignores the 'has it changed' element and just rebuild
-          everything.
-
-     -s   Silent / Don't output anything that would normally be output. Error
-          messages are still output.
-
-     -t   Touch only / Mark all targets as being the latest.
 
 =head1 SUBROUTINES/METHODS
 

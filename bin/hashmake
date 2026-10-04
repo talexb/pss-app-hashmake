@@ -30,8 +30,9 @@ VERSION
     #  y - Working directory (because we can't write to target directory)
     #  B - Force rebuild (proceed as if there's no index file).
     #  t - Touch intead of running the commands. (Pretend commands were run.)
+    #  h - Display help
 
-    getopts ( 'vdsnf:y:Bt', \my %opts );
+    getopts ( 'vdsnf:y:Bth', \my %opts );
 
     if ( exists $opts{ v } ) {
 
@@ -39,10 +40,34 @@ VERSION
       exit ( 0 );
     }
 
+    if ( exists $opts{ h } ) {
+
+      #  These options were created to mirror make(1) as much as possible.
+
+      my %help = (
+        'v'      => "Show version information and quit. Overrides all other arguments.",
+        'd'      => "Turn on debug info.",
+        's'      => "Don't output messages.",
+        'n'      => "Print the commands that would be executed.",
+        'f FILE' => "Specify a non-standard hash.makefile. Default is Hash.Makefile",
+        'y DIR'  => "Working directory (if the target directory is not writable)",
+        'B'      => "Force rebuild (proceed as if there's no index file).",
+        't'      => "Touch intead of running the commands. (Pretend commands were run.)",
+        'h'      => "Show this help and quit. Overrides all other arguments.",
+      );
+
+      print "Usage: hashmake [options]\nOptions:\n\n";
+
+      print join ( "\n",
+        map { sprintf ( " -%-8s%s", $_, $help{ $_ } ) } sort keys %help ) . "\n";
+
+      exit ( 0 );
+    }
+
     my ( $result, $output ) = App::HashMake::run ( \%opts );
 
     #  The module just collects the errors and the output but doesn't actually
-    #  send anything. This allows us to do testing without having to capture
+    #  output anything. This allows us to do testing without having to capture
     #  the output.  This may or may not be a smart approach.
 
     #  If there are errors, output them.
