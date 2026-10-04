@@ -9,6 +9,8 @@ ignore.txt
 t/00-load.t
 t/01-run.t
 t/02-multiple.t
+t/03-dollarat.t
+t/DollarAt_Makefile
 t/manifest.t
 t/pod-coverage.t
 t/pod.t
