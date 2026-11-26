@@ -1,3 +1,8 @@
 .*swp
 */.*swp
 */.hash_index
+
+blib/
+MYMETA.*
+Makefile
+pm_to_blib
